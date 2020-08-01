@@ -1,74 +1,114 @@
-#include <Wire.h>
+/*
+
+* PN532 NFC RFID Module (v3)
+
+* Quick Test Code v2
+
+* Based on an example code from PN532 Arduino Library
+
+* Tailored for HSUART & Arduino Uno
+
+* T.K.Hareendran/2019
+
+* www.electroschematics.com
+
+*/
+
+#include <SoftwareSerial.h>
+SoftwareSerial SWSerial( 10, 11 ); // RX, TX
+
 #include <PN532_I2C.h>
 #include <PN532.h>
 #include <NfcAdapter.h>
+PN532_I2C pn532_i2c (SWSerial);
+PN532 NFC (pn532_i2c); 
 
-PN532_I2C pn532i2c(Wire);
-PN532 nfc(pn532i2c);
+
+/*
+#include <PN532_SWHSU.h>
+#include <PN532.h>
+
+PN532_SWHSU pn532swhsu( SWSerial );
+
+PN532 nfc( pn532swhsu );
+*/
 
 void setup(void) {
+
   Serial.begin(115200);
-  Serial.println("Hello!");
+
+  Serial.println("Hello Maker!");
 
   nfc.begin();
-  uint32_t versiondata = nfc.getFirmwareVersion();
-  if (! versiondata) {
-    Serial.print("Didn't find PN53x board");
-    while (1); // halt
-  }
-  // Got ok data, print it out!
-  Serial.print("Found chip PN5"); Serial.println((versiondata >> 24) & 0xFF, HEX);
-  Serial.print("Firmware ver. "); Serial.print((versiondata >> 16) & 0xFF, DEC);
-  Serial.print('.'); Serial.println((versiondata >> 8) & 0xFF, DEC);
 
-  // Set the max number of retry attempts to read from a card
-  // This prevents us from waiting forever for a card, which is
-  // the default behaviour of the PN532.
-  nfc.setPassiveActivationRetries(0xFF);
-  // configure board to read RFID tags
+  uint32_t versiondata = nfc.getFirmwareVersion();
+
+  if (! versiondata) {
+
+    Serial.print("Didn't Find PN53x Module");
+
+    while (1); // Halt
+
+  }
+
+  // Got valid data, print it out!
+
+  Serial.print("Found chip PN5"); Serial.println((versiondata>>24) & 0xFF, HEX);
+
+  Serial.print("Firmware ver. "); Serial.print((versiondata>>16) & 0xFF, DEC);
+
+  Serial.print('.'); Serial.println((versiondata>>8) & 0xFF, DEC);
+
+  // Configure board to read RFID tags
+
   nfc.SAMConfig();
-  Serial.println("Waiting for an ISO14443A card");
+
+  Serial.println("Waiting for an ISO14443A Card ...");
+
 }
 
 void loop(void) {
+
   boolean success;
+
   uint8_t uid[] = { 0, 0, 0, 0, 0, 0, 0 };  // Buffer to store the returned UID
-  uint8_t uidLength;                        // Length of the UID (4 or 7 bytes depending on ISO14443A card type)
-  // Wait for an ISO14443A type cards (Mifare, etc.).  When one is found
-  // 'uid' will be populated with the UID, and uidLength will indicate
-  // if the uid is 4 bytes (Mifare Classic) or 7 bytes (Mifare Ultralight)
-  success = nfc.readPassiveTargetID(PN532_MIFARE_ISO14443A, &uid[0], &uidLength);
+
+  uint8_t uidLength;                       // Length of the UID (4 or 7 bytes depending on ISO14443A card type)
+
+success = nfc.readPassiveTargetID(PN532_MIFARE_ISO14443A, &uid[0], &uidLength);
+
   if (success) {
-    Serial.println("Found a card!");
-    Serial.print("UID Length: "); Serial.print(uidLength, DEC); Serial.println(" bytes");
+
+    Serial.println("Found A Card!");
+
+    Serial.print("UID Length: ");Serial.print(uidLength, DEC);Serial.println(" bytes");
+
     Serial.print("UID Value: ");
-    String hex_value = "";
-    for (uint8_t i = 0; i < uidLength; i++)
+
+    for (uint8_t i=0; i < uidLength; i++)
+
     {
-      Serial.print(" 0x"); Serial.print(uid[i], HEX);
-      //Serial.print(" ");Serial.print(uid[i], HEX);
-      hex_value += (String)uid[i];
+
+      Serial.print(" 0x");Serial.print(uid[i], HEX);
+
     }
-    Serial.println(", value=" + hex_value);
-    if (hex_value == "16517722582") {
-      Serial.println("This is Key Tag. ");
-    }
-    else if (hex_value == "230522426") {
-      Serial.println("This is Card Tag. ");
-    }
-    else if (hex_value == "63156295") {
-      Serial.println("This is Phone Tag. ");
-    }
-    else
-      Serial.println("I don't know.");
+
     Serial.println("");
-    // Wait 1 second before continuing
+
+    // 1 second halt
+
     delay(1000);
+
   }
+
   else
+
   {
+
     // PN532 probably timed out waiting for a card
-    Serial.println("Waiting for a card...");
+
+    Serial.println("Timed out! Waiting for a card...");
+
   }
 
 }
