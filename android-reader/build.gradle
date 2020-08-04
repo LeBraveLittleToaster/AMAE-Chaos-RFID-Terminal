@@ -18,6 +18,9 @@ allprojects {
     repositories {
         google()
         jcenter()
+        maven {
+            url = "http://134.60.157.67:8081/repository/maven-public/"
+        }
     }
 }
 
