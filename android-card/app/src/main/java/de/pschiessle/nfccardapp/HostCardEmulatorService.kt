@@ -12,10 +12,13 @@ class HostCardEmulatorService: HostApduService() {
         val STATUS_FAILED = "6F00"
         val CLA_NOT_SUPPORTED = "6E00"
         val INS_NOT_SUPPORTED = "6D00"
+        //this is the id the application has, like a request type
         val AID = "A0000002471001"
         val SELECT_INS = "A4"
         val DEFAULT_CLA = "00"
         val MIN_APDU_LENGTH = 12
+        //this is is send via postal and later entered manually by the user in the app
+        val USER_ID = "A0000002477077"
     }
 
     override fun onDeactivated(reason: Int) {
@@ -28,6 +31,7 @@ class HostCardEmulatorService: HostApduService() {
         }
 
         val hexCommandApdu = Utils.toHex(commandApdu)
+        Log.i("APDU", "Command: $hexCommandApdu")
         if (hexCommandApdu.length < MIN_APDU_LENGTH) {
             return Utils.hexStringToByteArray(STATUS_FAILED)
         }
@@ -41,7 +45,7 @@ class HostCardEmulatorService: HostApduService() {
         }
 
         if (hexCommandApdu.substring(10, 24) == AID)  {
-            return Utils.hexStringToByteArray(STATUS_SUCCESS)
+            return Utils.hexStringToByteArray(USER_ID)
         } else {
             return Utils.hexStringToByteArray(STATUS_FAILED)
         }

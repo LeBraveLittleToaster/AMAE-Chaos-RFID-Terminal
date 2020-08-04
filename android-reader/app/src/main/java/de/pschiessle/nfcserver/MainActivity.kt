@@ -60,6 +60,8 @@ class MainActivity : AppCompatActivity() , NfcAdapter.ReaderCallback{
     override fun onTagDiscovered(tag: Tag?) {
         val isoDep = IsoDep.get(tag)
         isoDep.connect()
+        //this data is an APDU command data string with is later divided into parts shown here
+        // https://medium.com/the-almanac/how-to-build-a-simple-smart-card-emulator-reader-for-android-7975fae4040f
         val response = isoDep.transceive(Utils.hexStringToByteArray(
             "00A4040007A0000002471001"))
         runOnUiThread { textView.append("\nCard Response: "
